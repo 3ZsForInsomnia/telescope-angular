@@ -2,13 +2,13 @@ local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
 local conf = require("telescope.config").values
 
-local getModulesInFolder = function(path, relative)
+local getModulesInFolder = function(path)
   local modules = {}
   local handle = io.popen("ls " .. path)
 
   for file in handle:lines() do
     if string.match(file, ".+%.module%.ts") then
-      table.insert(modules, relative .. "/" .. file)
+      table.insert(modules, path .. "/" .. file)
     end
   end
 
@@ -25,9 +25,9 @@ local getAngularModules = function()
 
   local curr = depth;
   while curr > 0 do
-    local lastSlash = string.find(absolutePath, "/[^/]*$") - 1
-    absolutePath = string.sub(absolutePath, 1, lastSlash)
-    local moduleFound = getModulesInFolder(absolutePath, path)
+    absolutePath = string.sub(absolutePath, 1, string.find(absolutePath, "/[^/]*$") - 1)
+
+    local moduleFound = getModulesInFolder(absolutePath)
     if table.getn(moduleFound) ~= nil then
       for _, module in ipairs(moduleFound) do
         table.insert(modules, module)
@@ -48,13 +48,11 @@ local angularPicker = function(opts)
     finder = finders.new_table({
       results = getAngularModules(),
       entry_maker = function(entry)
-        print("entry", vim.inspect(entry))
-        print("val", vim.inspect(vim.fn.getcwd() .. "/" .. entry))
-        local fileName = string.sub(entry, string.find(entry, "/[^/]*$") - 1)
-        print("fileName", vim.inspect(fileName))
+        local cwd = vim.fn.getcwd()
+        local relativePath = string.sub(entry, string.len(cwd) + 2)
         return {
-          value = vim.fn.getcwd() .. "/" .. entry,
-          display = entry,
+          value = entry,
+          display = relativePath,
           ordinal = entry
         }
       end
