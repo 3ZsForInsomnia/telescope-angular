@@ -48,8 +48,12 @@ local angularPicker = function(opts)
     finder = finders.new_table({
       results = getAngularModules(),
       entry_maker = function(entry)
+        print("entry", vim.inspect(entry))
+        print("val", vim.inspect(vim.fn.getcwd() .. "/" .. entry))
+        local fileName = string.sub(entry, string.find(entry, "/[^/]*$") - 1)
+        print("fileName", vim.inspect(fileName))
         return {
-          value = entry,
+          value = vim.fn.getcwd() .. "/" .. entry,
           display = entry,
           ordinal = entry
         }
